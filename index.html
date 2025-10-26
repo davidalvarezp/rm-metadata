@@ -1,55 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Remove Image Metadata</title>
 <style>
-  body { font-family: Arial, sans-serif; text-align: center; margin: 50px; background: #f7f7f7; }
-  h1 { color: #333; }
+  /* Reset & base */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f8; color: #333; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+  
+  /* Header */
+  header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 900px; margin-bottom: 30px; }
+  h1 { font-size: 2rem; color: #1a73e8; }
+  .lang-toggle { padding: 5px 10px; cursor: pointer; border: none; border-radius: 5px; background: #1a73e8; color: white; font-weight: bold; }
+  
+  /* Drop area */
   #dropArea {
-    border: 2px dashed #888;
-    padding: 40px;
-    margin: 20px auto;
-    width: 80%;
-    background: #fff;
+    border: 2px dashed #bbb;
+    border-radius: 12px;
+    padding: 50px 20px;
+    width: 100%;
+    max-width: 900px;
+    background: white;
+    text-align: center;
+    font-size: 1.2rem;
+    color: #666;
+    transition: border 0.3s, background 0.3s;
     cursor: pointer;
-    transition: border 0.3s;
   }
-  #dropArea.hover { border-color: #555; }
-  .image-container { display: inline-block; margin: 10px; text-align: center; }
-  img { max-width: 150px; max-height: 150px; display: block; margin-bottom: 5px; }
-  button { padding: 5px 10px; cursor: pointer; }
+  #dropArea.hover { border-color: #1a73e8; background: #f0f4ff; }
+  
+  /* Images grid */
+  #images { display: flex; flex-wrap: wrap; justify-content: center; margin-top: 30px; gap: 20px; }
+  .image-container { background: white; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); padding: 10px; text-align: center; width: 150px; }
+  .image-container img { width: 100%; border-radius: 8px; margin-bottom: 8px; }
+  .image-container button { padding: 5px 10px; border: none; border-radius: 5px; background: #1a73e8; color: white; cursor: pointer; font-size: 0.9rem; }
+  
+  /* Responsive */
+  @media (max-width: 600px) {
+    h1 { font-size: 1.5rem; }
+    #dropArea { padding: 40px 10px; font-size: 1rem; }
+    .image-container { width: 45%; }
+  }
 </style>
 </head>
 <body>
-  <h1>Remove Image Metadata</h1>
-  <div id="dropArea">Drag & drop images here or click to select</div>
-  <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
-  <div id="images"></div>
+<header>
+  <h1 id="title">Remove Image Metadata</h1>
+  <button class="lang-toggle" id="langToggle">ES</button>
+</header>
+
+<div id="dropArea">Drag & drop images here or click to select</div>
+<input type="file" id="fileInput" accept="image/*" multiple style="display:none">
+<div id="images"></div>
 
 <script>
 const dropArea = document.getElementById('dropArea');
 const fileInput = document.getElementById('fileInput');
 const imagesDiv = document.getElementById('images');
+const langToggle = document.getElementById('langToggle');
+const title = document.getElementById('title');
 
+const texts = {
+  en: {
+    title: 'Remove Image Metadata',
+    drop: 'Drag & drop images here or click to select',
+    download: 'Download Clean',
+    langToggle: 'ES'
+  },
+  es: {
+    title: 'Eliminar Metadata de Fotos',
+    drop: 'Arrastra y suelta imágenes aquí o haz clic para seleccionar',
+    download: 'Descargar limpia',
+    langToggle: 'EN'
+  }
+};
+
+let lang = navigator.language.startsWith('es') ? 'es' : 'en';
+updateTexts();
+
+// Language toggle
+langToggle.addEventListener('click', () => {
+  lang = lang === 'en' ? 'es' : 'en';
+  updateTexts();
+});
+
+function updateTexts() {
+  title.textContent = texts[lang].title;
+  dropArea.textContent = texts[lang].drop;
+  langToggle.textContent = texts[lang].langToggle;
+  document.querySelectorAll('.image-container button').forEach(btn => {
+    btn.textContent = texts[lang].download;
+  });
+}
+
+// File handling
 dropArea.addEventListener('click', () => fileInput.click());
-
-dropArea.addEventListener('dragover', e => {
-  e.preventDefault();
-  dropArea.classList.add('hover');
-});
-
-dropArea.addEventListener('dragleave', e => {
-  dropArea.classList.remove('hover');
-});
-
+dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.classList.add('hover'); });
+dropArea.addEventListener('dragleave', e => dropArea.classList.remove('hover'));
 dropArea.addEventListener('drop', e => {
   e.preventDefault();
   dropArea.classList.remove('hover');
   handleFiles(e.dataTransfer.files);
 });
-
 fileInput.addEventListener('change', () => handleFiles(fileInput.files));
 
 function handleFiles(files) {
@@ -77,7 +130,7 @@ function handleFiles(files) {
           container.appendChild(imageEl);
 
           const downloadBtn = document.createElement('button');
-          downloadBtn.textContent = 'Download Clean';
+          downloadBtn.textContent = texts[lang].download;
           downloadBtn.onclick = () => {
             const link = document.createElement('a');
             link.href = url;
