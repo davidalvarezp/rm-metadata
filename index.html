@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eliminar Metadata de Fotos</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; margin: 50px; background: #f7f7f7; }
+  h1 { color: #333; }
+  #dropArea {
+    border: 2px dashed #888;
+    padding: 40px;
+    margin: 20px auto;
+    width: 80%;
+    background: #fff;
+    cursor: pointer;
+    transition: border 0.3s;
+  }
+  #dropArea.hover { border-color: #555; }
+  .image-container { display: inline-block; margin: 10px; text-align: center; }
+  img { max-width: 150px; max-height: 150px; display: block; margin-bottom: 5px; }
+  button { padding: 5px 10px; cursor: pointer; }
+</style>
+</head>
+<body>
+  <h1>Eliminar Metadata de Fotos</h1>
+  <div id="dropArea">Arrastra y suelta tus imágenes aquí o haz clic para seleccionar</div>
+  <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
+  <div id="images"></div>
+
+<script>
+const dropArea = document.getElementById('dropArea');
+const fileInput = document.getElementById('fileInput');
+const imagesDiv = document.getElementById('images');
+
+dropArea.addEventListener('click', () => fileInput.click());
+
+dropArea.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropArea.classList.add('hover');
+});
+
+dropArea.addEventListener('dragleave', e => {
+  dropArea.classList.remove('hover');
+});
+
+dropArea.addEventListener('drop', e => {
+  e.preventDefault();
+  dropArea.classList.remove('hover');
+  handleFiles(e.dataTransfer.files);
+});
+
+fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+function handleFiles(files) {
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        canvas.toBlob(blob => {
+          const url = URL.createObjectURL(blob);
+
+          // Crear contenedor de imagen
+          const container = document.createElement('div');
+          container.className = 'image-container';
+
+          const imageEl = document.createElement('img');
+          imageEl.src = url;
+          container.appendChild(imageEl);
+
+          const downloadBtn = document.createElement('button');
+          downloadBtn.textContent = 'Descargar limpia';
+          downloadBtn.onclick = () => {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `clean_${file.name}`;
+            link.click();
+          };
+          container.appendChild(downloadBtn);
+
+          imagesDiv.appendChild(container);
+        }, 'image/png'); // PNG elimina EXIF de manera confiable
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+</script>
+</body>
+</html>
